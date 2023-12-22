@@ -39,11 +39,79 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const todos = [];
+// let todoCount = 1;
+const express = require("express");
+const bodyParser = require("body-parser");
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.get("/", (request, response) => {
+  response.send("You're at the root");
+});
+//Request 1
+app.get("/todos", (req, res) => {
+  // res.status(200).send(JSON.stringify(todos));
+  res.status(200).json(todos);
+});
+//Request 2
+app.get("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  for (let todo of todos) {
+    if (todo.id == id) {
+      return res.status(200).json(todo);
+    }
+  }
+  return res.status(404).json("Not found");
+});
+//Request 3
+app.post("/todos", (req, res) => {
+  const newTodo = {};
+  newTodo["id"] = Math.floor(Math.random() * 1000000);
+  newTodo["title"] = req.body.title;
+  newTodo["completed"] = req.body.completed;
+  newTodo["description"] = req.body.description;
+  todos.push(newTodo);
+  res.status(201).send(newTodo);
+});
+//Request 4
+app.put("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  let found = false;
+  for (let todo of todos) {
+    if (todo.id == id) {
+      found = true;
+      todo.completed = req.body.completed;
+      res.status(200).json("OK");
+    }
+  }
+  if (!found) {
+    res.status(404).json("Not found");
+  }
+});
+//Request 5
+app.delete("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  let found = false;
+  for (let i = 0; i < todos.length; i++) {
+    if (todos[i].id == id) {
+      found = true;
+      todos.splice(i, 1);
+      console.log(todos);
+      res.status(200).json("OK");
+    }
+  }
+  if (!found) {
+    res.status(404).json("Not found");
+  }
+});
+//checking for wrong routes
+app.get("*", (req, res) => {
+  res.status(404).json("Wrong request");
+});
+// app.listen(3000, () => {
+//   console.log("Systems up and running");
+// });
+module.exports = app;
